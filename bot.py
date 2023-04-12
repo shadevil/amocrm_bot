@@ -15,7 +15,7 @@ def read_value(query,file):
                 tab_index = line.index('\t')
                 return line[tab_index+1:].strip()
 
-def save_auth_data():
+def auth_data():
     if not os.path.exists('auth'):
         site = input("Введите сайт(без https://): ")
         set_auth_data('site','https://' + site)
@@ -33,7 +33,7 @@ def set_auth_data(type,data):
         f.write(type + '\t' + data + "\n")
 
 def start():
-    save_auth_data()
+    auth_data()
     site = read_value('site','auth')
     login = read_value('login','auth')
     password = read_value('password','auth')
@@ -59,23 +59,23 @@ def start():
     else: print('DATA WAS NOT FOUND')
 
 def search(driver,cards):
-    # FIXME: enable loop, enable card click, 
+    # FIXME: enable loop, time.sleep, accept button
     # white True:
     for card in cards:
-        wait = WebDriverWait(driver, 10)
         card.click()
-        context = driver.find_element(by=By.CLASS_NAME, 
+        content = driver.find_element(by=By.CLASS_NAME, 
             value=read_value('context','params')).get_attribute("innerHTML")
-        print(context)
+        set_auth_data('content',context)
+        print(content)
         if(not reg_search(read_value('reg','params'),context) &
             reg_search(read_value('city','params'),context)):
         #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
             print('MATCH')
             back = driver.find_elements(by=By.CLASS_NAME, 
-                value="svg-icon svg-common--arrow-left-dims")
+                value=read_value('back','params'))
         #     accept.click()
             back.click()
-            time.sleep(600)
+            # time.sleep(600)
 
 def main(driver):
     wait = WebDriverWait(driver, 10)
@@ -89,7 +89,7 @@ def main(driver):
     # hover.perform()
 
     search(driver,driver.find_elements(by=By.CLASS_NAME, value="pipeline-unsorted__item-from"))
-    search(driver,driver.find_elements(by=By.CLASS_NAME, value=read_value('purchase','params')))
+    search(driver,driver.find_elements(by=By.XPATH, value=read_value('purchase','params')))
 
     driver.quit()
 
