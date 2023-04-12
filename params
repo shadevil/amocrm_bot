@@ -1,5 +1,3 @@
-site		https://technola.amocrm.ru/
-
 leads		//a[@href="/leads/"]
 datetime	//*[@class="feed-note  feed-note-system-common"] /*/*/*/*/*[@class="feed-note__date"]
 context		note--body--content-not-sliced__scroll-wrapper custom-scroll
