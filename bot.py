@@ -59,22 +59,23 @@ def start():
     else: print('DATA WAS NOT FOUND')
 
 def search(driver,cards):
+    # FIXME: enable loop, enable card click, 
+    # white True:
     for card in cards:
-        # card.click()
         wait = WebDriverWait(driver, 10)
         card.click()
-        time.sleep(5)
         context = driver.find_element(by=By.CLASS_NAME, 
             value=read_value('context','params')).get_attribute("innerHTML")
-        if(not reg_search(read_value('reg','params'),context) & reg_search(read_value('city','params'),context)):
+        print(context)
+        if(not reg_search(read_value('reg','params'),context) &
+            reg_search(read_value('city','params'),context)):
         #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
-            time.sleep(5)
             print('MATCH')
             back = driver.find_elements(by=By.CLASS_NAME, 
                 value="svg-icon svg-common--arrow-left-dims")
         #     accept.click()
             back.click()
-            print(context)
+            time.sleep(600)
 
 def main(driver):
     wait = WebDriverWait(driver, 10)
@@ -82,12 +83,13 @@ def main(driver):
     leads.click()
 
 
-    element_to_hover_over = driver.find_element(by=By.XPATH, value='//*[@id="list_page_holder"]/div')
-    hover = ActionChains(driver).move_to_element(element_to_hover_over)
-    hover.perform()
+    # element_to_hover_over = driver.find_element(by=By.XPATH, 
+    #     value='//*[@id="list_page_holder"]/div')
+    # hover = ActionChains(driver).move_to_element(element_to_hover_over)
+    # hover.perform()
 
     search(driver,driver.find_elements(by=By.CLASS_NAME, value="pipeline-unsorted__item-from"))
-    # search(driver,driver.find_elements(by=By.CLASS_NAME, value="pipeline-unsorted__item-from"))
+    search(driver,driver.find_elements(by=By.CLASS_NAME, value=read_value('purchase','params')))
 
     driver.quit()
 
