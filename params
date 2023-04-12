@@ -1,0 +1,8 @@
+site		https://technola.amocrm.ru/
+
+leads		//a[@href="/leads/"]
+datetime	//*[@class="feed-note  feed-note-system-common"] /*/*/*/*/*[@class="feed-note__date"]
+context		note--body--content-not-sliced__scroll-wrapper custom-scroll
+
+reg			(?i)(?:\w*)?(?:вебхук|api|cайты24|php|разработать|help[ -]?desk|интернет[ -]?магазин|маркет|бесплатн|розничн(?:ая|ой|ые|ых|ую) торговл(?:е|я|и|ей|ю))(?:\w*)
+city		(?i)(?:\w*)?(?:уфа|москва|санкт-петербург)(?:\w*)
