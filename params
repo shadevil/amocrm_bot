@@ -6,6 +6,8 @@ context		note--body--content-not-sliced__scroll-wrapper custom-scroll
 
 purchase	//div[1]/div/div/div/div/a[@class="pipeline_leads__title-text h-text-overflow js-navigate-link"]
 
+back		js-back-button card-fields__top-back
+
 reg			(?i)(?:\w*)?(?:вебхук|api|cайты24|php|разработать|help[ -]?desk|интернет[ -]?магазин|маркет|бесплатн|розничн(?:ая|ой|ые|ых|ую) торговл(?:е|я|и|ей|ю))(?:\w*)
 
 city		(?i)(?:\w*)?(?:уфа|москва|санкт-петербург)(?:\w*)
