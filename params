@@ -2,11 +2,9 @@ leads		//a[@href="/leads/"]
 
 datetime	//*[@class="feed-note  feed-note-system-common"] /*/*/*/*/*[@class="feed-note__date"]
 
-context		note--body--content-not-sliced__scroll-wrapper custom-scroll
+purchases	//div[1]/div/div/div/div/a[@class="pipeline_leads__title-text h-text-overflow js-navigate-link"]
 
-purchase	//div[1]/div/div/div/div/a[@class="pipeline_leads__title-text h-text-overflow js-navigate-link"]
-
-purchasewwww	//div[1]/div/div/div/div[@class="pipeline_leads__lead-title"]
+contents	//div[@class="note--body--content-not-sliced__scroll-wrapper custom-scroll"]/p
 
 back		js-back-button card-fields__top-back
 
