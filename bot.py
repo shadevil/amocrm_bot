@@ -5,8 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-global site, login, password
-
+card_names = []
 def match_log(matches):
     if matches:
         for match in matches:
@@ -73,16 +72,16 @@ def main_process(driver):
 def search(driver,cards):
     # FIXME: accept button, time sleep
     for card in cards:
-        card_names = []
-        card_name = card.get_attributes('innerHTML')
+        card_name = card.get_attribute('innerHTML')
         if card_name not in card_names:
             card_names.append(card_name)
-
             wait = WebDriverWait(driver, 10)
             wait.until(EC.element_to_be_clickable((By.XPATH, read_value('purchases','params'))))
             card.click()
-            time.sleep(6)
-            contents = driver.find_elements(by=By.XPATH, value=read_value('contents','params'))
+            contents_xpath = read_value('contents','params')
+            wait.until(EC.visibility_of_element_located((By.XPATH, contents_xpath)))
+            contents = driver.find_elements(by=By.XPATH, value=contents_xpath)
+
             for x in contents:
                 content = x.get_attribute("innerHTML")
                 reg = reg_search(read_value('reg','params'),content)
@@ -93,7 +92,7 @@ def search(driver,cards):
                 if(not reg and city):
             #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
                     print('MATCH')
-                    back = driver.find_elements(by=By.CLASS_NAME, value=read_value('back','params'))
+                    back = driver.find_element(by=By.XPATH, value=read_value('back','params'))
             #     accept.click()
                     back.click()
                 # time.sleep(600)
