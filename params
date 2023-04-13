@@ -2,7 +2,9 @@ leads		//a[@href="/leads/"]
 
 datetime	//*[@class="feed-note  feed-note-system-common"] /*/*/*/*/*[@class="feed-note__date"]
 
-purchases	//div[1]/div/div/div/div/a[@class="pipeline_leads__title-text h-text-overflow js-navigate-link"]
+purchases_main	//div[1]/div/div/div/div/a[@class="pipeline_leads__title-text h-text-overflow js-navigate-link"]
+
+purchases_partner  pipeline-unsorted__item-from
 
 contents	//div[@class="note--body--content-not-sliced__scroll-wrapper custom-scroll"]/p
 
