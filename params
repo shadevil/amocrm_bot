@@ -1,15 +1,15 @@
-leads		//a[@href="/leads/"]
+leads				//a[@href="/leads/"]
 
-datetime	//*[@class="feed-note  feed-note-system-common"] /*/*/*/*/*[@class="feed-note__date"]
+datetime			//*[@class="feed-note  feed-note-system-common"] /*/*/*/*/*[@class="feed-note__date"]
 
-purchases_main	//div[1]/div/div/div/div/a[@class="pipeline_leads__title-text h-text-overflow js-navigate-link"]
+purchases_main		//div[1]/div/div/div/div/a[@class="pipeline_leads__title-text h-text-overflow js-navigate-link"]
 
-purchases_partner  pipeline-unsorted__item-from
+purchases_partner	pipeline-unsorted__item-from
 
-contents	//div[@class="note--body--content-not-sliced__scroll-wrapper custom-scroll"]/p
+contents			//div[@class="note--body--content-not-sliced__scroll-wrapper custom-scroll"]/p
 
-back		js-back-button card-fields__top-back
+back				//div[@class="js-back-button card-fields__top-back"]
 
-reg			(?i)(?:\w*)?(?:вебхук|api|cайты24|php|разработать|help[ -]?desk|интернет[ -]?магазин|маркет|бесплатн|розничн(?:ая|ой|ые|ых|ую) торговл(?:е|я|и|ей|ю))(?:\w*)
+reg					(?i)(?:\w*)?(?:вебхук|api|cайты24|php|разработать|help[ -]?desk|интернет[ -]?магазин|маркет|бесплатн|розничн(?:ая|ой|ые|ых|ую) торговл(?:е|я|и|ей|ю))(?:\w*)
 
-city		(?i)(?:\w*)?(?:уфа|москва|санкт-петербург)(?:\w*)
+city				(?i)(?:\w*)?(?:уфа|москва|санкт-петербург)(?:\w*)
