@@ -63,20 +63,19 @@ def search(driver,cards):
     # white True:
     for card in cards:
         wait = WebDriverWait(driver, 10)
-        wait.until(EC.element_to_be_clickable((By.XPATH, read_value('purchase','params'))))
+        wait.until(EC.element_to_be_clickable((By.XPATH, read_value('purchases','params'))))
         card.click()
-        content = driver.find_element(by=By.CLASS_NAME, 
-            value=read_value('context','params')).get_attribute("innerHTML")
-        set_auth_data('content',content)
-        print(content)
-        if(not reg_search(read_value('reg','params'),content) &
-            reg_search(read_value('city','params'),content)):
+
+        contents = driver.find_elements(by=By.XPATH, value=read_value('contents','params'))
+        for x in contents:
+            content = x.innerHTML()
+            print(content)
+            if(not reg_search(read_value('reg','params'),content) & reg_search(read_value('city','params'),content)):
         #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
-            print('MATCH')
-            back = driver.find_elements(by=By.CLASS_NAME, 
-                value=read_value('back','params'))
+                print('MATCH')
+                back = driver.find_elements(by=By.CLASS_NAME, value=read_value('back','params'))
         #     accept.click()
-            back.click()
+                back.click()
             # time.sleep(600)
 
 def main(driver):
@@ -87,7 +86,7 @@ def main(driver):
     left_menu_overlay = wait.until(EC.element_to_be_clickable((By.ID, "left-menu-overlay")))
     left_menu_overlay.click()
 
-    links = driver.find_elements(by=By.XPATH, value=read_value('purchase','params'))
+    links = driver.find_elements(by=By.XPATH, value=read_value('purchases','params'))
     search(driver,links)
     # links = wait.until(EC.element_to_be_clickable((By.XPATH, read_value('purchase','params'))))
     # search(driver,links)
