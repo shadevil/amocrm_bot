@@ -4,9 +4,13 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
 
 global site, login, password
+
+def match_log(matches):
+    if matches:
+        for match in matches:
+            print("#LOG         Match found: " + match)
 
 def read_value(query,file):
     with open(file, 'r') as file:
@@ -26,7 +30,7 @@ def auth_data():
         password = getpass.getpass("Введите пароль: ")
         set_auth_data('password',password)
 
-def reg_search(reg,query): return re.match(reg,query)
+def reg_search(reg,query): return re.findall(reg, query)
 
 def set_auth_data(type,data):
     with open("auth", "a") as f:
@@ -55,50 +59,53 @@ def start():
         password_el.send_keys(password)
 
         submit_button.click()
-        main(driver)
+        move_to_purchases(driver)
     else: print('DATA WAS NOT FOUND')
 
+def main_process(driver):
+    # FIXME: enable loop
+    # while True:
+    cards_partner = driver.find_elements(by=By.CLASS_NAME, value=read_value('purchases_partner','params'))
+    cards_main = driver.find_elements(by=By.XPATH, value=read_value('purchases_main','params'))
+    search(driver,cards_partner)
+    search(driver,cards_main)
+
 def search(driver,cards):
-    # FIXME: enable loop, time.sleep, accept button
-    # white True:
+    # FIXME: accept button, time sleep
     for card in cards:
-        wait = WebDriverWait(driver, 10)
-        wait.until(EC.element_to_be_clickable((By.XPATH, read_value('purchases','params'))))
-        card.click()
+        card_names = []
+        card_name = card.get_attributes('innerHTML')
+        if card_name not in card_names:
+            card_names.append(card_name)
 
-        contents = driver.find_elements(by=By.XPATH, value=read_value('contents','params'))
-        for x in contents:
-            content = x.innerHTML()
-            print(content)
-            if(not reg_search(read_value('reg','params'),content) & reg_search(read_value('city','params'),content)):
-        #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
-                print('MATCH')
-                back = driver.find_elements(by=By.CLASS_NAME, value=read_value('back','params'))
-        #     accept.click()
-                back.click()
-            # time.sleep(600)
+            wait = WebDriverWait(driver, 10)
+            wait.until(EC.element_to_be_clickable((By.XPATH, read_value('purchases','params'))))
+            card.click()
+            time.sleep(6)
+            contents = driver.find_elements(by=By.XPATH, value=read_value('contents','params'))
+            for x in contents:
+                content = x.get_attribute("innerHTML")
+                reg = reg_search(read_value('reg','params'),content)
+                city = reg_search(read_value('city','params'),content)
+                match_log(reg)
+                match_log(city)
+                
+                if(not reg and city):
+            #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
+                    print('MATCH')
+                    back = driver.find_elements(by=By.CLASS_NAME, value=read_value('back','params'))
+            #     accept.click()
+                    back.click()
+                # time.sleep(600)
 
-def main(driver):
+def move_to_purchases(driver):
     wait = WebDriverWait(driver, 10)
     leads = wait.until(EC.element_to_be_clickable((By.XPATH, read_value('leads','params'))))
     leads.click()
-
     left_menu_overlay = wait.until(EC.element_to_be_clickable((By.ID, "left-menu-overlay")))
     left_menu_overlay.click()
 
-    links = driver.find_elements(by=By.XPATH, value=read_value('purchases','params'))
-    search(driver,links)
-    # links = wait.until(EC.element_to_be_clickable((By.XPATH, read_value('purchase','params'))))
-    # search(driver,links)
-    # element_to_hover_over = driver.find_element(by=By.XPATH, 
-    #     value='//*[@id="list_page_holder"]/div')
-    # hover = ActionChains(driver).move_to_element(element_to_hover_over)
-    # hover.perform()
-
-    # search(driver,driver.find_elements(by=By.CLASS_NAME, value="pipeline-unsorted__item-from"))
-    # links = driver.find_elements(by=By.XPATH, value=read_value('purchase','params'))
-    # search(driver,links)
-
+    main_process(driver)
     driver.quit()
 
 if __name__ == '__main__':
