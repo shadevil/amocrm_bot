@@ -4,9 +4,9 @@ datetime	//*[@class="feed-note  feed-note-system-common"] /*/*/*/*/*[@class="fee
 
 context		note--body--content-not-sliced__scroll-wrapper custom-scroll
 
-purchas	//div[1]/div/div/div/div/a[@class="pipeline_leads__title-text h-text-overflow js-navigate-link"]
+purchase	//div[1]/div/div/div/div/a[@class="pipeline_leads__title-text h-text-overflow js-navigate-link"]
 
-purchase	//div[1]/div/div/div/div[@class="pipeline_leads__lead-title"]
+purchasewwww	//div[1]/div/div/div/div[@class="pipeline_leads__lead-title"]
 
 back		js-back-button card-fields__top-back
 
