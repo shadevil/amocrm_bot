@@ -62,13 +62,15 @@ def search(driver,cards):
     # FIXME: enable loop, time.sleep, accept button
     # white True:
     for card in cards:
+        wait = WebDriverWait(driver, 10)
+        wait.until(EC.element_to_be_clickable((By.XPATH, read_value('purchase','params'))))
         card.click()
         content = driver.find_element(by=By.CLASS_NAME, 
             value=read_value('context','params')).get_attribute("innerHTML")
-        set_auth_data('content',context)
+        set_auth_data('content',content)
         print(content)
-        if(not reg_search(read_value('reg','params'),context) &
-            reg_search(read_value('city','params'),context)):
+        if(not reg_search(read_value('reg','params'),content) &
+            reg_search(read_value('city','params'),content)):
         #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
             print('MATCH')
             back = driver.find_elements(by=By.CLASS_NAME, 
@@ -82,14 +84,21 @@ def main(driver):
     leads = wait.until(EC.element_to_be_clickable((By.XPATH, read_value('leads','params'))))
     leads.click()
 
+    left_menu_overlay = wait.until(EC.element_to_be_clickable((By.ID, "left-menu-overlay")))
+    left_menu_overlay.click()
 
+    links = driver.find_elements(by=By.XPATH, value=read_value('purchase','params'))
+    search(driver,links)
+    # links = wait.until(EC.element_to_be_clickable((By.XPATH, read_value('purchase','params'))))
+    # search(driver,links)
     # element_to_hover_over = driver.find_element(by=By.XPATH, 
     #     value='//*[@id="list_page_holder"]/div')
     # hover = ActionChains(driver).move_to_element(element_to_hover_over)
     # hover.perform()
 
-    search(driver,driver.find_elements(by=By.CLASS_NAME, value="pipeline-unsorted__item-from"))
-    search(driver,driver.find_elements(by=By.XPATH, value=read_value('purchase','params')))
+    # search(driver,driver.find_elements(by=By.CLASS_NAME, value="pipeline-unsorted__item-from"))
+    # links = driver.find_elements(by=By.XPATH, value=read_value('purchase','params'))
+    # search(driver,links)
 
     driver.quit()
 
