@@ -4,12 +4,20 @@ datetime			//*[@class="feed-note  feed-note-system-common"] /*/*/*/*/*[@class="f
 
 purchases_main		//div[1]/div/div/div/div/a[@class="pipeline_leads__title-text h-text-overflow js-navigate-link"]
 
-purchases_partner	pipeline-unsorted__item-from
+purchases_partner	//div[contains(@title,'Заявка')]
 
-contents			//div[@class="note--body--content-not-sliced__scroll-wrapper custom-scroll"]/p
+info				//div[contains(@title,'Город')]
+
+purchases_info		//../following-sibling::div/div[@class="pipeline-unsorted-forms__right h-text-overflow"]
+
+content_main		//div[@class="note--body--content-not-sliced__scroll-wrapper custom-scroll"]/p
+
+content_partner		//*[@id="card_holder"]/div[3]/div/div[1]/div/div[2]/div[5]/div/div/div[2]/div[2]/div[2]/div/p
 
 back				//div[@class="js-back-button card-fields__top-back"]
 
 reg					(?i)(?:\w*)?(?:вебхук|api|cайты24|php|разработать|help[ -]?desk|интернет[ -]?магазин|маркет|бесплатн|розничн(?:ая|ой|ые|ых|ую) торговл(?:е|я|и|ей|ю))(?:\w*)
 
 city				(?i)(?:\w*)?(?:уфа|москва|санкт-петербург)(?:\w*)
+
+div[contains(@title,'Город')]
