@@ -5,7 +5,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-card_names = []
 def match_log(matches):
     if matches:
         for match in matches:
@@ -74,50 +73,37 @@ def search(driver,type):
         print("MAIN")
 
     for card in cards:
-        card_name = card_link = None
-        if type == "content_partner":
-            card = card.find_element(by=By.XPATH, value=read_value('purchase_info'))
-            card_link = card.find_element(by=By.XPATH, value=read_value('purchase_link'))
-        else:
-            card_link = card
-        card_name = card.get_attribute('innerHTML')
-
-        if card_name not in card_names:
-            print("CARD NAME " + card_name) 
-            card_names.append(card_name)
-
-            wait = WebDriverWait(driver, 20)
-            wait.until(EC.element_to_be_clickable(card_link)).click()
-            time.sleep(2)
-            elements = driver.find_elements(by=By.XPATH, value=read_value(type))
-            # wait.until(EC.presence_of_element_located((By.XPATH, read_value('info'))))
-            print("LEN " + str(len(elements)))
-            i = 1
-            back = wait.until(EC.presence_of_element_located((By.XPATH, read_value('back'))))
-            print("====================================")
-            for x in elements:
-                print(str(x.get_attribute('innerHTML')))
-                
-                
-                
-            #     #//////////////////////
-            #     print(str(i) + " " + content)
-            #     i = i + 1
-            #     #//////////////////////
-            #     reg = reg_search(read_value('reg'),content)
-            #     city = reg_search(read_value('city'),content)
-            #     match_log(reg)
-            #     match_log(city)
-                
-            #     if(not reg and city):
-            # #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
-            #         print('MATCH')
-            # # #     accept.click()
-            print("====================================")
-            back.click()
-            #         time.sleep(5)
-            #     # time.sleep(600)
-        else: print("CARD NAME EXIST " + card_name)
+        wait = WebDriverWait(driver, 20)
+        wait.until(EC.element_to_be_clickable(card)).click()
+        time.sleep(2)
+        elements = driver.find_elements(by=By.XPATH, value=read_value(type))
+        # wait.until(EC.presence_of_element_located((By.XPATH, read_value('info'))))
+        print("LEN " + str(len(elements)))
+        i = 1
+        back = wait.until(EC.presence_of_element_located((By.XPATH, read_value('back'))))
+        print("====================================")
+        for x in elements:
+            print(str(x.get_attribute('innerHTML')))
+            
+            
+            
+        #     #//////////////////////
+        #     print(str(i) + " " + content)
+        #     i = i + 1
+        #     #//////////////////////
+        #     reg = reg_search(read_value('reg'),content)
+        #     city = reg_search(read_value('city'),content)
+        #     match_log(reg)
+        #     match_log(city)
+            
+        #     if(not reg and city):
+        # #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
+        #         print('MATCH')
+        # # #     accept.click()
+        print("====================================")
+        back.click()
+        #         time.sleep(5)
+        #     # time.sleep(600)
 
 def move_to_purchases(driver):
     wait = WebDriverWait(driver, 10)
