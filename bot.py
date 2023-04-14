@@ -11,7 +11,8 @@ def match_log(matches):
         for match in matches:
             print("#LOG         Match found: " + match)
 
-def read_value(query,file):
+def read_value(query,file=None):
+    if file is None: file = 'params'
     with open(file, 'r') as file:
         for line in file:
             if query in line:
@@ -59,52 +60,63 @@ def start():
 
         submit_button.click()
         move_to_purchases(driver)
-    else: print('DATA WAS NOT FOUND')
+    else: print('DATA WAS NOT FOUND')    
 
-def main_process(driver):
-    # FIXME: enable loop
+def search(driver,type):    
+    # FIXME: accept button, time sleep, enable loop
     # while True:
-    cards_partner = driver.find_elements(by=By.CLASS_NAME, value=read_value('purchases_partner','params'))
-    cards_main = driver.find_elements(by=By.XPATH, value=read_value('purchases_main','params'))
-    search(driver,cards_partner)
-    search(driver,cards_main)
+    cards = card_name = None
+    if type == "content_partner":
+        cards = driver.find_elements(by=By.XPATH, value=read_value('purchases_partner'))
+        print("PARTNER")
+    if type == "content_main":
+        cards = driver.find_elements(by=By.XPATH, value=read_value('purchases_main'))        
+        print("MAIN")
 
-def search(driver,cards):
-    # FIXME: accept button, time sleep
     for card in cards:
         card_name = card.get_attribute('innerHTML')
+        print("CARD NAME " + card_name)        
         if card_name not in card_names:
             card_names.append(card_name)
-            wait = WebDriverWait(driver, 10)
-            wait.until(EC.element_to_be_clickable((By.XPATH, read_value('purchases','params'))))
-            card.click()
-            contents_xpath = read_value('contents','params')
-            wait.until(EC.visibility_of_element_located((By.XPATH, contents_xpath)))
-            contents = driver.find_elements(by=By.XPATH, value=contents_xpath)
-
-            for x in contents:
-                content = x.get_attribute("innerHTML")
-                reg = reg_search(read_value('reg','params'),content)
-                city = reg_search(read_value('city','params'),content)
-                match_log(reg)
-                match_log(city)
+            wait = WebDriverWait(driver, 20)
+            wait.until(EC.element_to_be_clickable(card)).click()
+            time.sleep(5)
+            elements = driver.find_elements(by=By.XPATH, value=read_value(type))
+            # wait.until(EC.presence_of_element_located((By.XPATH, read_value('info'))))
+            print("LEN " + str(len(elements)))
+            i = 1            
+            back = wait.until(EC.presence_of_element_located((By.XPATH, read_value('back'))))
+            for x in elements:
+                print(str(x.get_attribute('innerHTML')))
                 
-                if(not reg and city):
-            #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
-                    print('MATCH')
-                    back = driver.find_element(by=By.XPATH, value=read_value('back','params'))
-            #     accept.click()
-                    back.click()
-                # time.sleep(600)
+                
+                
+            #     #//////////////////////
+            #     print(str(i) + " " + content)
+            #     i = i + 1
+            #     #//////////////////////
+            #     reg = reg_search(read_value('reg'),content)
+            #     city = reg_search(read_value('city'),content)
+            #     match_log(reg)
+            #     match_log(city)
+                
+            #     if(not reg and city):
+            # #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
+            #         print('MATCH')
+            # # #     accept.click()
+            back.click()
+            #         time.sleep(5)
+            #     # time.sleep(600)
+        else: print("CARD NAME EXIST " + card_name)
 
 def move_to_purchases(driver):
     wait = WebDriverWait(driver, 10)
-    leads = wait.until(EC.element_to_be_clickable((By.XPATH, read_value('leads','params'))))
-    leads.click()
-    left_menu_overlay = wait.until(EC.element_to_be_clickable((By.ID, "left-menu-overlay")))
-    left_menu_overlay.click()
+    wait.until(EC.element_to_be_clickable((By.XPATH, read_value('leads')))).click()
+    wait.until(EC.element_to_be_clickable((By.ID, "left-menu-overlay"))).click()
 
-    main_process(driver)
+    search(driver,'content_partner')
+    search(driver,'content_main')
+    
     driver.quit()
 
 if __name__ == '__main__':
