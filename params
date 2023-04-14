@@ -4,11 +4,13 @@ datetime			//*[@class="feed-note  feed-note-system-common"] /*/*/*/*/*[@class="f
 
 purchases_main		//div[1]/div/div/div/div/a[@class="pipeline_leads__title-text h-text-overflow js-navigate-link"]
 
-purchases_partner	//div[contains(@title,'Заявка')]
+purchases_partner	//div[@class="pipeline-unsorted__item-data pipeline-unsorted__item-data_forms"]
+
+purchase_link		.//div[1]/div[1]
+
+purchase_info		.//div[2]/div[2]
 
 info				//div[contains(@title,'Город')]
-
-purchases_info		//../following-sibling::div/div[@class="pipeline-unsorted-forms__right h-text-overflow"]
 
 content_main		//div[@class="note--body--content-not-sliced__scroll-wrapper custom-scroll"]/p
 

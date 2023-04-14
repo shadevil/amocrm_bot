@@ -46,7 +46,7 @@ def start():
         chrome_options = webdriver.ChromeOptions()
         prefs = {"profile.default_content_setting_values.notifications" : 2}
         chrome_options.add_experimental_option("prefs",prefs)
-        driver = webdriver.Chrome(executable_path=r'chromedriver',options=chrome_options)
+        driver = webdriver.Chrome(executable_path=r'chromedriver.exe',options=chrome_options)
 
         driver.get(site)
         driver.implicitly_wait(0.5)
@@ -65,7 +65,7 @@ def start():
 def search(driver,type):    
     # FIXME: accept button, time sleep, enable loop
     # while True:
-    cards = card_name = None
+    cards = None
     if type == "content_partner":
         cards = driver.find_elements(by=By.XPATH, value=read_value('purchases_partner'))
         print("PARTNER")
@@ -74,18 +74,27 @@ def search(driver,type):
         print("MAIN")
 
     for card in cards:
+        card_name = card_link = None
+        if type == "content_partner":
+            card = card.find_element(by=By.XPATH, value=read_value('purchase_info'))
+            card_link = card.find_element(by=By.XPATH, value=read_value('purchase_link'))
+        else:
+            card_link = card
         card_name = card.get_attribute('innerHTML')
-        print("CARD NAME " + card_name)        
+
         if card_name not in card_names:
+            print("CARD NAME " + card_name) 
             card_names.append(card_name)
+
             wait = WebDriverWait(driver, 20)
-            wait.until(EC.element_to_be_clickable(card)).click()
-            time.sleep(5)
+            wait.until(EC.element_to_be_clickable(card_link)).click()
+            time.sleep(2)
             elements = driver.find_elements(by=By.XPATH, value=read_value(type))
             # wait.until(EC.presence_of_element_located((By.XPATH, read_value('info'))))
             print("LEN " + str(len(elements)))
-            i = 1            
+            i = 1
             back = wait.until(EC.presence_of_element_located((By.XPATH, read_value('back'))))
+            print("====================================")
             for x in elements:
                 print(str(x.get_attribute('innerHTML')))
                 
@@ -104,6 +113,7 @@ def search(driver,type):
             # #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
             #         print('MATCH')
             # # #     accept.click()
+            print("====================================")
             back.click()
             #         time.sleep(5)
             #     # time.sleep(600)
@@ -114,7 +124,7 @@ def move_to_purchases(driver):
     wait.until(EC.element_to_be_clickable((By.XPATH, read_value('leads')))).click()
     wait.until(EC.element_to_be_clickable((By.ID, "left-menu-overlay"))).click()
 
-    search(driver,'content_partner')
+    # search(driver,'content_partner')
     search(driver,'content_main')
     
     driver.quit()
