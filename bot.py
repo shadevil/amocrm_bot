@@ -5,18 +5,37 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+xpath_dict = {
+    "leads": "//a[@href='/leads/']",
+
+    "datetime": "//*[@class='feed-note  feed-note-system-common'] /*/*/*/*/*[@class='feed-note__date']",
+
+    "purchases_main": "//div[1]/div/div/div/div/a[@class='pipeline_leads__title-text h-text-overflow js-navigate-link']",
+
+    "purchases_partner": "//div[@class='pipeline-unsorted__item-from']",
+
+    "purchase_link": ".//div[1]/div[1]",
+
+    "purchase_info": ".//div[2]/div[2]",
+
+    "info": "//div[contains(@title,'Город')]",
+
+    "content_main": "//div[@class='note--body--content-not-sliced__scroll-wrapper custom-scroll']/p",
+
+    "content_partner": "//*[@id='card_holder']/div[3]/div/div[1]/div/div[2]/div[5]/div/div/div[2]/div[2]/div[2]/div/p",
+
+    "back": "//div[@class='js-back-button card-fields__top-back']"
+}
+
+reg_dict = {    
+    "reg": "(?i)(?:\w*)?(?:вебхук|api|cайты24|php|разработать|help[ -]?desk|интернет[ -]?магазин|маркет|бесплатн|розничн(?:ая|ой|ые|ых|ую) торговл(?:е|я|и|ей|ю))(?:\w*)",
+
+    "city": "(?i)(?:\w*)?(?:уфа|москва|санкт-петербург)(?:\w*)"
+}
 def match_log(matches):
     if matches:
         for match in matches:
             print("#LOG         Match found: " + match)
-
-def read_value(query,file=None):
-    if file is None: file = 'params'
-    with open(file, 'r') as file:
-        for line in file:
-            if query in line:
-                tab_index = line.index('\t')
-                return line[tab_index+1:].strip()
 
 def auth_data():
     if not os.path.exists('auth'):
@@ -29,17 +48,25 @@ def auth_data():
         password = getpass.getpass("Введите пароль: ")
         set_auth_data('password',password)
 
-def reg_search(reg,query): return re.findall(reg, query)
+def get_auth_data(query):
+    file = 'auth'
+    with open(file, 'r') as file:
+        for line in file:
+            if query in line:
+                tab_index = line.index('\t')
+                return line[tab_index+1:].strip()
 
 def set_auth_data(type,data):
     with open("auth", "a") as f:
         f.write(type + '\t' + data + "\n")
 
+def reg_search(reg,query): return re.findall(reg, query)
+
 def start():
     auth_data()
-    site = read_value('site','auth')
-    login = read_value('login','auth')
-    password = read_value('password','auth')
+    site = get_auth_data('site')
+    login = get_auth_data('login')
+    password = get_auth_data('password')
 
     if(site != '' and login != '' and password != ''):
         chrome_options = webdriver.ChromeOptions()
@@ -64,23 +91,21 @@ def start():
 def search(driver,type):    
     # FIXME: accept button, time sleep, enable loop
     # while True:
-    cards = None
-    if type == "content_partner":
-        cards = driver.find_elements(by=By.XPATH, value=read_value('purchases_partner'))
-        print("PARTNER")
-    if type == "content_main":
-        cards = driver.find_elements(by=By.XPATH, value=read_value('purchases_main'))        
-        print("MAIN")
+    cards = driver.find_elements(by=By.XPATH, value=xpath_dict['purchases_'+type])      
+    print(type.upper())
 
     for card in cards:
+        # card_name = card.get_attribute('innerHTML')
+
         wait = WebDriverWait(driver, 20)
+        time.sleep(2)
         wait.until(EC.element_to_be_clickable(card)).click()
         time.sleep(2)
-        elements = driver.find_elements(by=By.XPATH, value=read_value(type))
+        elements = driver.find_elements(by=By.XPATH, value=xpath_dict['content_'+type])
         # wait.until(EC.presence_of_element_located((By.XPATH, read_value('info'))))
         print("LEN " + str(len(elements)))
         i = 1
-        back = wait.until(EC.presence_of_element_located((By.XPATH, read_value('back'))))
+        back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
         print("====================================")
         for x in elements:
             print(str(x.get_attribute('innerHTML')))
@@ -107,11 +132,11 @@ def search(driver,type):
 
 def move_to_purchases(driver):
     wait = WebDriverWait(driver, 10)
-    wait.until(EC.element_to_be_clickable((By.XPATH, read_value('leads')))).click()
+    wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['leads']))).click()
     wait.until(EC.element_to_be_clickable((By.ID, "left-menu-overlay"))).click()
 
-    # search(driver,'content_partner')
-    search(driver,'content_main')
+    # search(driver,'partner')
+    search(driver,'main')
     
     driver.quit()
 
