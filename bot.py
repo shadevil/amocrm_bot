@@ -8,6 +8,8 @@ from selenium.webdriver.support import expected_conditions as EC
 xpath_dict = {
     "leads": "//a[@href='/leads/']",
 
+    "overlay": "left-menu-overlay",
+
     "datetime": "//*[@class='feed-note  feed-note-system-common'] /*/*/*/*/*[@class='feed-note__date']",
 
     "purchases_main": "//div[1]/div/div/div/div/a[@class='pipeline_leads__title-text h-text-overflow js-navigate-link']",
@@ -91,20 +93,22 @@ def start():
 def search(driver,type):    
     # FIXME: accept button, time sleep, enable loop
     # while True:
-    cards = driver.find_elements(by=By.XPATH, value=xpath_dict['purchases_'+type])      
+    wait = WebDriverWait(driver, 10)
+    print("====================================")
+    print('PURCHASES TYPE ' + 'purchases_'+type)
+    print("====================================")
+    cards = driver.find_elements(by=By.XPATH, value=xpath_dict['purchases_'+type])
+    print('LEN ' + str(len(cards)))      
     print(type.upper())
-
+    time.sleep(3)
     for card in cards:
-        # card_name = card.get_attribute('innerHTML')
-
-        wait = WebDriverWait(driver, 20)
-        time.sleep(2)
+        print(card.get_attribute('innerHTML'))
         wait.until(EC.element_to_be_clickable(card)).click()
-        time.sleep(2)
-        elements = driver.find_elements(by=By.XPATH, value=xpath_dict['content_'+type])
-        # wait.until(EC.presence_of_element_located((By.XPATH, read_value('info'))))
+        print("====================================")
+        print('CONTENT TYPE ' + 'content_'+type)
+        print("====================================")
+        elements = wait.until(EC.visibility_of_any_elements_located((By.XPATH, xpath_dict['content_'+type]))) 
         print("LEN " + str(len(elements)))
-        i = 1
         back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
         print("====================================")
         for x in elements:
@@ -112,28 +116,30 @@ def search(driver,type):
             
             
             
-        #     #//////////////////////
-        #     print(str(i) + " " + content)
-        #     i = i + 1
-        #     #//////////////////////
-        #     reg = reg_search(read_value('reg'),content)
-        #     city = reg_search(read_value('city'),content)
-        #     match_log(reg)
-        #     match_log(city)
+        # #     #//////////////////////
+        # #     print(str(i) + " " + content)
+        # #     i = i + 1
+        # #     #//////////////////////
+        # #     reg = reg_search(read_value('reg'),content)
+        # #     city = reg_search(read_value('city'),content)
+        # #     match_log(reg)
+        # #     match_log(city)
             
-        #     if(not reg and city):
-        # #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
-        #         print('MATCH')
-        # # #     accept.click()
+        # #     if(not reg and city):
+        # # #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
+        # #         print('MATCH')
+        # # # #     accept.click()
         print("====================================")
         back.click()
-        #         time.sleep(5)
-        #     # time.sleep(600)
 
 def move_to_purchases(driver):
     wait = WebDriverWait(driver, 10)
     wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['leads']))).click()
-    wait.until(EC.element_to_be_clickable((By.ID, "left-menu-overlay"))).click()
+
+    action = webdriver.ActionChains(driver)
+    element = wait.until(EC.visibility_of_element_located((By.ID, xpath_dict['overlay'])))
+    action.move_to_element(element)
+    action.perform()
 
     # search(driver,'partner')
     search(driver,'main')
