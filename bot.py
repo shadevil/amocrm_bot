@@ -1,5 +1,5 @@
 import time, re, getpass, os
-from datetime import datetime
+from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,7 +13,7 @@ xpath_dict = {
         "left-menu-overlay",
 
     "datetime":
-        "//*[@class='feed-note  feed-note-system-common'] /*/*/*/*/*[@class='feed-note__date']",
+        "//div/div[@class='feed-note__date']",
 
     "purchases_main":
         "//div[1]/div/div/div/div/a[@class='pipeline_leads__title-text h-text-overflow js-navigate-link']",
@@ -97,34 +97,39 @@ def search(driver,type):
     # while True:
     wait = WebDriverWait(driver, 10)
     print("====================================")
-    print('PURCHASES TYPE ' + 'purchases_'+type)
-    cards = driver.find_elements(by=By.XPATH, value=xpath_dict['purchases_'+type])
+    cards = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['purchases_'+type])))
     print('LEN CARDS ' + str(len(cards)))      
     print(type.upper())
-    time.sleep(3)
     for card in cards:
-        print(card.get_attribute('innerHTML'))
+        
+        # print(card.get_attribute('innerHTML'))
         wait.until(EC.element_to_be_clickable(card)).click()
-        print('CONTENT TYPE ' + 'content_'+type)
-        time.sleep(3)
-        elements = driver.find_elements(By.XPATH, xpath_dict['content_'+type])
-        print("LEN ELEMENTS " + str(len(elements)))
-        back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
-        for x in elements:
-            #Uncommit this for test
-            # print(str(x.get_attribute('innerHTML')))
-            content = x.get_attribute('innerHTML')
-            reg = reg_search(reg_dict['reg'],content)
-            city = reg_search(reg_dict['city'],content)
-            match_log(reg)
-            match_log(city)
-            
-            if(not reg and city):
-        #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
-                print('MATCH')
-        #     accept.click()        
-        back.click()
-    print("====================================")
+        
+        dt = wait.until(EC.presence_of_element_located((By.XPATH, xpath_dict['datetime']))).get_attribute('innerHTML')
+        result = datetime.strptime(dt, '%d.%m.%Y %H:%M')
+        result = result.replace(second=0, microsecond=0)  # Set seconds and microseconds to zero
+        diff = datetime.now() - result
+        print("DATETIME DIFF " + str(diff))
+        
+        if(diff >= timedelta(minutes=15)):
+            time.sleep(3)
+            elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['content_'+type])))
+            print("LEN ELEMENTS " + str(len(elements)))
+            back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
+            for x in elements:
+                #Uncommit this for test
+                # print(str(x.get_attribute('innerHTML')))
+                content = x.get_attribute('innerHTML')
+                reg = reg_search(reg_dict['reg'],content)
+                city = reg_search(reg_dict['city'],content)
+                match_log(reg)
+                match_log(city)
+                
+                if(not reg and city):
+            #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
+                    print('MATCH')
+            #     accept.click()        
+            back.click()
 
 def move_to_purchases(driver):
     wait = WebDriverWait(driver, 10)
