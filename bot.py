@@ -6,27 +6,38 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 xpath_dict = {
-    "leads": "//a[@href='/leads/']",
+    "leads":
+        "//a[@href='/leads/']",
 
-    "overlay": "left-menu-overlay",
+    "overlay":
+        "left-menu-overlay",
 
-    "datetime": "//*[@class='feed-note  feed-note-system-common'] /*/*/*/*/*[@class='feed-note__date']",
+    "datetime":
+        "//*[@class='feed-note  feed-note-system-common'] /*/*/*/*/*[@class='feed-note__date']",
 
-    "purchases_main": "//div[1]/div/div/div/div/a[@class='pipeline_leads__title-text h-text-overflow js-navigate-link']",
+    "purchases_main":
+        "//div[1]/div/div/div/div/a[@class='pipeline_leads__title-text h-text-overflow js-navigate-link']",
 
-    "purchases_partner": "//div[@class='pipeline-unsorted__item-from']",
+    "purchases_partner":
+        "//div[@class='pipeline-unsorted__item-from']",
 
-    "purchase_link": ".//div[1]/div[1]",
+    "purchase_link":
+        ".//div[1]/div[1]",
 
-    "purchase_info": ".//div[2]/div[2]",
+    "purchase_info":
+        ".//div[2]/div[2]",
 
-    "info": "//div[contains(@title,'Город')]",
+    "info":
+        "//div[contains(@title,'Город')]",
 
-    "content_main": "//div[@class='note--body--content-not-sliced__scroll-wrapper custom-scroll']/p",
+    "content_main":
+        "//div[@class='note--body--content-not-sliced__scroll-wrapper custom-scroll']/p",
 
-    "content_partner": "//*[@id='card_holder']/div[3]/div/div[1]/div/div[2]/div[5]/div/div/div[2]/div[2]/div[2]/div/p",
+    "content_partner":
+        "//div[@class='feed-note__body']/p",
 
-    "back": "//div[@class='js-back-button card-fields__top-back']"
+    "back":
+        "//div[@class='js-back-button card-fields__top-back']"
 }
 
 reg_dict = {    
@@ -98,7 +109,7 @@ def search(driver,type):
     print('PURCHASES TYPE ' + 'purchases_'+type)
     print("====================================")
     cards = driver.find_elements(by=By.XPATH, value=xpath_dict['purchases_'+type])
-    print('LEN ' + str(len(cards)))      
+    print('LEN Cards' + str(len(cards)))      
     print(type.upper())
     time.sleep(3)
     for card in cards:
@@ -107,8 +118,9 @@ def search(driver,type):
         print("====================================")
         print('CONTENT TYPE ' + 'content_'+type)
         print("====================================")
-        elements = wait.until(EC.visibility_of_any_elements_located((By.XPATH, xpath_dict['content_'+type]))) 
-        print("LEN " + str(len(elements)))
+        time.sleep(3)
+        elements = driver.find_elements(By.XPATH, xpath_dict['content_'+type])
+        print("LEN Elements " + str(len(elements)))
         back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
         print("====================================")
         for x in elements:
@@ -141,7 +153,7 @@ def move_to_purchases(driver):
     action.move_to_element(element)
     action.perform()
 
-    # search(driver,'partner')
+    search(driver,'partner')
     search(driver,'main')
     
     driver.quit()
