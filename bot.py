@@ -21,15 +21,6 @@ xpath_dict = {
     "purchases_partner":
         "//div[@class='pipeline-unsorted__item-from']",
 
-    "purchase_link":
-        ".//div[1]/div[1]",
-
-    "purchase_info":
-        ".//div[2]/div[2]",
-
-    "info":
-        "//div[contains(@title,'Город')]",
-
     "content_main":
         "//div[@class='note--body--content-not-sliced__scroll-wrapper custom-scroll']/p",
 
@@ -41,9 +32,9 @@ xpath_dict = {
 }
 
 reg_dict = {    
-    "reg": "(?i)(?:\w*)?(?:вебхук|api|cайты24|php|разработать|help[ -]?desk|интернет[ -]?магазин|маркет|бесплатн|розничн(?:ая|ой|ые|ых|ую) торговл(?:е|я|и|ей|ю))(?:\w*)",
+    "reg": r"(?i)(?:\w*)?(?:вебхук|api|cайты24|php|разработать|help[ -]?desk|интернет[ -]?магазин|маркет|бесплатн|розничн(?:ая|ой|ые|ых|ую) торговл(?:е|я|и|ей|ю))(?:\w*)",
 
-    "city": "(?i)(?:\w*)?(?:уфа|москва|санкт-петербург)(?:\w*)"
+    "city": r"(?i)(?:\w*)?(?:уфа|москва|санкт-петербург)(?:\w*)"
 }
 def match_log(matches):
     if matches:
@@ -107,42 +98,33 @@ def search(driver,type):
     wait = WebDriverWait(driver, 10)
     print("====================================")
     print('PURCHASES TYPE ' + 'purchases_'+type)
-    print("====================================")
     cards = driver.find_elements(by=By.XPATH, value=xpath_dict['purchases_'+type])
-    print('LEN Cards' + str(len(cards)))      
+    print('LEN CARDS ' + str(len(cards)))      
     print(type.upper())
     time.sleep(3)
     for card in cards:
         print(card.get_attribute('innerHTML'))
         wait.until(EC.element_to_be_clickable(card)).click()
-        print("====================================")
         print('CONTENT TYPE ' + 'content_'+type)
-        print("====================================")
         time.sleep(3)
         elements = driver.find_elements(By.XPATH, xpath_dict['content_'+type])
-        print("LEN Elements " + str(len(elements)))
+        print("LEN ELEMENTS " + str(len(elements)))
         back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
-        print("====================================")
         for x in elements:
-            print(str(x.get_attribute('innerHTML')))
+            #Uncommit this for test
+            # print(str(x.get_attribute('innerHTML')))
+            content = x.get_attribute('innerHTML')
+            reg = reg_search(reg_dict['reg'],content)
+            city = reg_search(reg_dict['city'],content)
+            match_log(reg)
+            match_log(city)
             
-            
-            
-        # #     #//////////////////////
-        # #     print(str(i) + " " + content)
-        # #     i = i + 1
-        # #     #//////////////////////
-        # #     reg = reg_search(read_value('reg'),content)
-        # #     city = reg_search(read_value('city'),content)
-        # #     match_log(reg)
-        # #     match_log(city)
-            
-        # #     if(not reg and city):
-        # # #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
-        # #         print('MATCH')
-        # # # #     accept.click()
-        print("====================================")
+            if(not reg and city):
+        #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
+                print('MATCH')
+        #     accept.click()        
         back.click()
+    print("====================================")
 
 def move_to_purchases(driver):
     wait = WebDriverWait(driver, 10)
