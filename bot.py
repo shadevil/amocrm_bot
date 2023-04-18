@@ -73,7 +73,7 @@ def write_log(message):
     data = date_time + ' ' + message
     print(data)
     with open("log", "a") as f:
-        f.write(data + "\n")
+        f.write(data + ' ' + "\n")
 
 def reg_search(reg,query): return re.findall(reg, query)
 
@@ -87,6 +87,7 @@ def start():
         chrome_options = webdriver.ChromeOptions()
         prefs = {"profile.default_content_setting_values.notifications" : 2}
         chrome_options.add_experimental_option("prefs",prefs)
+        # изменить, если запуск не на windows
         driver = webdriver.Chrome(executable_path=r'chromedriver.exe',options=chrome_options)
 
         driver.get(site)
@@ -179,7 +180,7 @@ def move_to_purchases(driver,overlay_exist):
         while True:
             search(driver,'partner')        
             search(driver,'main')
-            time.sleep(30)
+            # time.sleep(30)
         # driver.quit()
     
     except TimeoutException as ex:
