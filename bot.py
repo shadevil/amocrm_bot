@@ -39,10 +39,11 @@ reg_dict = {
 
     "city":         r"(?i)(?:\w*)?(?:уфа|москва|санкт-петербург|новосибирск|самара|казань|екатеринбург|челябинск|нижний новгород|омск|самара|ростов-на-дону|красноярск|краснодар|пермь|воронеж|волгоград)(?:\w*)"
 }
+
 def match_log(matches):
     if matches:
         for match in matches:
-            print("#LOG         Match found: " + match)
+            write_log("#LOG         Match found: " + match)
 
 def auth_data():
     if not os.path.exists('auth'):
@@ -66,6 +67,13 @@ def get_auth_data(query):
 def set_auth_data(type,data):
     with open("auth", "a") as f:
         f.write(type + '\t' + data + "\n")
+
+def write_log(log,message):
+    date_time = datetime.now.strftime("%m/%d/%Y, %H:%M:%S")
+    data = date_time + ' ' + message
+    print(data)
+    with open("auth", "a") as f:
+        f.write(data + "\n")
 
 def reg_search(reg,query): return re.findall(reg, query)
 
@@ -94,21 +102,23 @@ def start():
         submit_button.click()
         overlay_exist = True
         move_to_purchases(driver,overlay_exist)
-    else: print('DATA WAS NOT FOUND')    
+    else: write_log('DATA WAS NOT FOUND')    
 
-def search(driver,type):  
-    # FIXME: accept button
+def search(driver,type):
     wait = WebDriverWait(driver, 10)
-    print("====================================")
+    count = 1
+    # FIXME: accept button
+    write_log("====================================")
     cards = driver.find_elements(by=By.XPATH, value=xpath_dict['purchases_'+type])
-    print('LEN CARDS ' + str(len(cards)))      
-    print(type.upper())
-    for card in cards:            
+    write_log('LEN CARDS ' + str(len(cards)))      
+    write_log(type.upper())
+    for card in cards:                    
         wait.until(EC.element_to_be_clickable(card)).click()
-        
+        time.sleep(1)
+        wait = WebDriverWait(driver, 10)
         dt = wait.until(EC.presence_of_element_located((By.XPATH, xpath_dict['datetime']))).get_attribute('innerHTML')
-        print('DATETIME ' + dt)
-        today = re.compile("сегодня", re.IGNORECASE)
+        write_log('RECEIVED DATETIME ' + dt)
+        
         result = None
         if(len(dt) != 16):
             now = datetime.now()
@@ -118,16 +128,17 @@ def search(driver,type):
             time_dt = datetime.strptime(time_str, "%H:%M")
             result = datetime(now.year, now.month, now.day, time_dt.hour, time_dt.minute) if today else datetime(yesterday.year, yesterday.month, yesterday.day, time_dt.hour, time_dt.minute)
         else: result = datetime.strptime(dt, '%d.%m.%Y %H:%M').replace(second=0, microsecond=0)
+        result = result
         diff = datetime.now() - result
-        print("DATETIME DIFF " + str(diff))
+        write_log("DATETIME DIFF " + str(diff))
         back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
-        if(diff >= timedelta(minutes=15)):
+        if(diff >= timedelta(minutes=15) and diff < timedelta(days=3)):
             time.sleep(3)
             elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['content_'+type])))
-            print("LEN ELEMENTS " + str(len(elements)))                    
+            write_log("LEN ELEMENTS " + str(len(elements)))                    
             for x in elements:
                 #Uncommit this for test
-                # print(str(x.get_attribute('innerHTML')))
+                # write_log(str(x.get_attribute('innerHTML')))
                 content = x.get_attribute('innerHTML')
                 reg = reg_search(reg_dict['reg'],content)
                 city = reg_search(reg_dict['city'],content)
@@ -135,10 +146,12 @@ def search(driver,type):
                 match_log(city)
                 
                 if(not reg and city):
-            #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
-                    print('MATCH')
-            #     accept.click()        
-        back.click() 
+                    # accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
+                    write_log('MATCH')
+                    # accept.click()
+        write_log('COUNT' + str(count))        
+        back.click()
+        count = count + 1
 
 def is_mouse_on_element(driver, xpath):
     elements = driver.find_element(By.XPATH,xpath)
@@ -149,28 +162,29 @@ def is_mouse_on_element(driver, xpath):
         if is_mouse_on_element:
             return True
     return False
+    
 
 def move_to_purchases(driver,overlay_exist):
-    print("OVERLAY_EXIST " + str(overlay_exist))    
-    # try:        
-    if(overlay_exist):
-        wait = WebDriverWait(driver, 10)
-        wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['leads']))).click()
-        element = wait.until(EC.visibility_of_element_located((By.ID, xpath_dict['overlay'])))                                           
-        action = webdriver.ActionChains(driver)           
-        action.move_to_element(element)
-        action.perform()
-        overlay_exist = True
-    while True:
-        search(driver,'main')
-        search(driver,'partner')
-        time.sleep(30)
-    driver.quit()
+    wait = WebDriverWait(driver, 10)
+    write_log("OVERLAY_EXIST " + str(overlay_exist))    
+    try:        
+        if(overlay_exist):
+            wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['leads']))).click()
+            element = wait.until(EC.visibility_of_element_located((By.ID, xpath_dict['overlay'])))                                           
+            action = webdriver.ActionChains(driver)           
+            action.move_to_element(element)
+            action.perform()
+            overlay_exist = True
+        while True:
+            search(driver,'partner')        
+            search(driver,'main')
+            time.sleep(30)
+        # driver.quit()
     
-    # except TimeoutException as ex:
-    #     print(ex.screen)
-    #     overlay_exist = False
-    #     move_to_purchases(driver,overlay_exist)
+    except TimeoutException as ex:
+        write_log(ex.screen)
+        overlay_exist = False
+        move_to_purchases(driver,overlay_exist)
 
 if __name__ == '__main__':
     start()
