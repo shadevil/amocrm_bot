@@ -7,6 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 
+# already_read = []
 xpath_dict = {
     "leads":
         "//a[@href='/leads/']",
@@ -95,53 +96,49 @@ def start():
         move_to_purchases(driver,overlay_exist)
     else: print('DATA WAS NOT FOUND')    
 
-def search(driver):  
+def search(driver,type):  
     # FIXME: accept button
-    while True:
-        for type in 'main','partner':
-            wait = WebDriverWait(driver, 10)
-            print("====================================")
-            cards = driver.find_elements(by=By.XPATH, value=xpath_dict['purchases_'+type])
-            print('LEN CARDS ' + str(len(cards)))      
-            print(type.upper())
-            for card in cards:            
-                wait.until(EC.element_to_be_clickable(card)).click()
+    wait = WebDriverWait(driver, 10)
+    print("====================================")
+    cards = driver.find_elements(by=By.XPATH, value=xpath_dict['purchases_'+type])
+    print('LEN CARDS ' + str(len(cards)))      
+    print(type.upper())
+    for card in cards:            
+        wait.until(EC.element_to_be_clickable(card)).click()
+        
+        dt = wait.until(EC.presence_of_element_located((By.XPATH, xpath_dict['datetime']))).get_attribute('innerHTML')
+        print('DATETIME ' + dt)
+        today = re.compile("сегодня", re.IGNORECASE)
+        result = None
+        if(len(dt) != 16):
+            now = datetime.now()
+            yesterday = datetime.now() - timedelta(days=1)
+            today = re.findall("сегодня", dt, flags=re.IGNORECASE)
+            time_str = dt.split(" ")[1]
+            time_dt = datetime.strptime(time_str, "%H:%M")
+            result = datetime(now.year, now.month, now.day, time_dt.hour, time_dt.minute) if today else datetime(yesterday.year, yesterday.month, yesterday.day, time_dt.hour, time_dt.minute)
+        else: result = datetime.strptime(dt, '%d.%m.%Y %H:%M').replace(second=0, microsecond=0)
+        diff = datetime.now() - result
+        print("DATETIME DIFF " + str(diff))
+        back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
+        if(diff >= timedelta(minutes=15)):
+            time.sleep(3)
+            elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['content_'+type])))
+            print("LEN ELEMENTS " + str(len(elements)))                    
+            for x in elements:
+                #Uncommit this for test
+                # print(str(x.get_attribute('innerHTML')))
+                content = x.get_attribute('innerHTML')
+                reg = reg_search(reg_dict['reg'],content)
+                city = reg_search(reg_dict['city'],content)
+                match_log(reg)
+                match_log(city)
                 
-                dt = wait.until(EC.presence_of_element_located((By.XPATH, xpath_dict['datetime']))).get_attribute('innerHTML')
-                print('DATETIME ' + dt)
-                today = re.compile("сегодня", re.IGNORECASE)
-                result = None
-                if(len(dt) != 16):
-                    now = datetime.now()
-                    yesterday = datetime.now() - timedelta(days=1)
-                    today = re.findall("сегодня", dt, flags=re.IGNORECASE)
-                    time_str = dt.split(" ")[1]
-                    time_dt = datetime.strptime(time_str, "%H:%M")
-                    result = datetime(now.year, now.month, now.day, time_dt.hour, time_dt.minute) if today else datetime(yesterday.year, yesterday.month, yesterday.day, time_dt.hour, time_dt.minute)
-                else: result = datetime.strptime(dt, '%d.%m.%Y %H:%M').replace(second=0, microsecond=0)
-                diff = datetime.now() - result
-                print("DATETIME DIFF " + str(diff))
-                back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
-                if(diff >= timedelta(minutes=15)):
-                    time.sleep(3)
-                    elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['content_'+type])))
-                    print("LEN ELEMENTS " + str(len(elements)))                    
-                    for x in elements:
-                        #Uncommit this for test
-                        # print(str(x.get_attribute('innerHTML')))
-                        content = x.get_attribute('innerHTML')
-                        reg = reg_search(reg_dict['reg'],content)
-                        city = reg_search(reg_dict['city'],content)
-                        match_log(reg)
-                        match_log(city)
-                        
-                        if(not reg and city):
-                    #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
-                            print('MATCH')
-                    #     accept.click()        
-                back.click()
-        # FIXME: change to 600
-        time.sleep(60)      
+                if(not reg and city):
+            #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
+                    print('MATCH')
+            #     accept.click()        
+        back.click() 
 
 def is_mouse_on_element(driver, xpath):
     elements = driver.find_element(By.XPATH,xpath)
@@ -164,8 +161,10 @@ def move_to_purchases(driver,overlay_exist):
         action.move_to_element(element)
         action.perform()
         overlay_exist = True
-    search(driver)
-    
+    while True:
+        search(driver,'main')
+        search(driver,'partner')
+        time.sleep(30)
     driver.quit()
     
     # except TimeoutException as ex:
