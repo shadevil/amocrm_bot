@@ -104,6 +104,21 @@ def start():
         move_to_purchases(driver,overlay_exist)
     else: write_log('DATA WAS NOT FOUND')    
 
+def datetime_result(driver):
+    wait = WebDriverWait(driver, 10)
+    dt = wait.until(EC.presence_of_element_located((By.XPATH, xpath_dict['datetime']))).get_attribute('innerHTML')
+    write_log('RECEIVED DATETIME ' + dt)
+    
+    result = None
+    if(len(dt) != 16):
+        now = datetime.now()
+        yesterday = datetime.now() - timedelta(days=1)
+        today = re.findall("сегодня", dt, flags=re.IGNORECASE)
+        time_str = dt.split(" ")[1]
+        time_dt = datetime.strptime(time_str, "%H:%M")
+        return datetime(now.year, now.month, now.day, time_dt.hour, time_dt.minute) if today else datetime(yesterday.year, yesterday.month, yesterday.day, time_dt.hour, time_dt.minute)
+    else: return datetime.strptime(dt, '%d.%m.%Y %H:%M').replace(second=0, microsecond=0)
+
 def search(driver,type):
     wait = WebDriverWait(driver, 10)
     count = 1
@@ -116,20 +131,8 @@ def search(driver,type):
         wait.until(EC.element_to_be_clickable(card)).click()
         time.sleep(1)
         wait = WebDriverWait(driver, 10)
-        dt = wait.until(EC.presence_of_element_located((By.XPATH, xpath_dict['datetime']))).get_attribute('innerHTML')
-        write_log('RECEIVED DATETIME ' + dt)
-        
-        result = None
-        if(len(dt) != 16):
-            now = datetime.now()
-            yesterday = datetime.now() - timedelta(days=1)
-            today = re.findall("сегодня", dt, flags=re.IGNORECASE)
-            time_str = dt.split(" ")[1]
-            time_dt = datetime.strptime(time_str, "%H:%M")
-            result = datetime(now.year, now.month, now.day, time_dt.hour, time_dt.minute) if today else datetime(yesterday.year, yesterday.month, yesterday.day, time_dt.hour, time_dt.minute)
-        else: result = datetime.strptime(dt, '%d.%m.%Y %H:%M').replace(second=0, microsecond=0)
-        result = result
-        diff = datetime.now() - result
+
+        diff = datetime.now() - datetime_result()
         write_log("DATETIME DIFF " + str(diff))
         back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
         if(diff >= timedelta(minutes=15) and diff < timedelta(days=3)):
