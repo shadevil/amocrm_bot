@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 
 xpath_dict = {
     "leads":
@@ -32,9 +33,9 @@ xpath_dict = {
 }
 
 reg_dict = {    
-    "reg": r"(?i)(?:\w*)?(?:вебхук|api|cайты24|php|разработать|help[ -]?desk|интернет[ -]?магазин|маркет|бесплатн|розничн(?:ая|ой|ые|ых|ую) торговл(?:е|я|и|ей|ю))(?:\w*)",
+    "reg":          r"(?i)(?:\w*)?(?:вебхук|api|cайты24|php|разработать|help[ -]?desk|интернет[ -]?магазин|маркет|бесплатн|розничн(?:ая|ой|ые|ых|ую) торговл(?:е|я|и|ей|ю))(?:\w*)",
 
-    "city": r"(?i)(?:\w*)?(?:уфа|москва|санкт-петербург)(?:\w*)"
+    "city":         r"(?i)(?:\w*)?(?:уфа|москва|санкт-петербург|новосибирск|самара|казань|екатеринбург|челябинск|нижний новгород|омск|самара|ростов-на-дону|красноярск|краснодар|пермь|воронеж|волгоград)(?:\w*)"
 }
 def match_log(matches):
     if matches:
@@ -92,58 +93,74 @@ def start():
         move_to_purchases(driver)
     else: print('DATA WAS NOT FOUND')    
 
-def search(driver,type):    
-    # FIXME: accept button, time sleep, enable loop
-    # while True:
-    wait = WebDriverWait(driver, 10)
-    print("====================================")
-    cards = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['purchases_'+type])))
-    print('LEN CARDS ' + str(len(cards)))      
-    print(type.upper())
-    for card in cards:
-        
-        # print(card.get_attribute('innerHTML'))
-        wait.until(EC.element_to_be_clickable(card)).click()
-        
-        dt = wait.until(EC.presence_of_element_located((By.XPATH, xpath_dict['datetime']))).get_attribute('innerHTML')
-        result = datetime.strptime(dt, '%d.%m.%Y %H:%M')
-        result = result.replace(second=0, microsecond=0)  # Set seconds and microseconds to zero
-        diff = datetime.now() - result
-        print("DATETIME DIFF " + str(diff))
-        
-        if(diff >= timedelta(minutes=15)):
-            time.sleep(3)
-            elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['content_'+type])))
-            print("LEN ELEMENTS " + str(len(elements)))
-            back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
-            for x in elements:
-                #Uncommit this for test
-                # print(str(x.get_attribute('innerHTML')))
-                content = x.get_attribute('innerHTML')
-                reg = reg_search(reg_dict['reg'],content)
-                city = reg_search(reg_dict['city'],content)
-                match_log(reg)
-                match_log(city)
+def search(driver):  
+    # FIXME: accept button
+    while True:
+        for type in 'partner','main':
+            wait = WebDriverWait(driver, 10)
+            print("====================================")
+            cards = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['purchases_'+type])))
+            print('LEN CARDS ' + str(len(cards)))      
+            print(type.upper())
+            for card in cards:            
+                wait.until(EC.element_to_be_clickable(card)).click()
                 
-                if(not reg and city):
-            #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
-                    print('MATCH')
-            #     accept.click()        
-            back.click()
+                dt = wait.until(EC.presence_of_element_located((By.XPATH, xpath_dict['datetime']))).get_attribute('innerHTML')
+                print('DATETIME ' + dt)
+                today = re.compile("сегодня", re.IGNORECASE)
+                result = None
+                if(len(dt) != 16):
+                    now = datetime.now()
+                    yesterday = datetime.now() - timedelta(days=1)
+                    today = re.findall("сегодня", dt, flags=re.IGNORECASE)
+                    time_str = dt.split(" ")[1]
+                    time_dt = datetime.strptime(time_str, "%H:%M")
+                    result = datetime(now.year, now.month, now.day, time_dt.hour, time_dt.minute) if today else datetime(yesterday.year, yesterday.month, yesterday.day, time_dt.hour, time_dt.minute)
+                else: result = datetime.strptime(dt, '%d.%m.%Y %H:%M').replace(second=0, microsecond=0)
+                diff = datetime.now() - result
+                print("DATETIME DIFF " + str(diff))
+                
+                if(diff >= timedelta(minutes=15)):
+                    time.sleep(3)
+                    elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['content_'+type])))
+                    print("LEN ELEMENTS " + str(len(elements)))
+                    back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
+                    for x in elements:
+                        #Uncommit this for test
+                        # print(str(x.get_attribute('innerHTML')))
+                        content = x.get_attribute('innerHTML')
+                        reg = reg_search(reg_dict['reg'],content)
+                        city = reg_search(reg_dict['city'],content)
+                        match_log(reg)
+                        match_log(city)
+                        
+                        if(not reg and city):
+                    #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
+                            print('MATCH')
+                    #     accept.click()        
+                    back.click()
+        # FIXME: change to 600
+        time.sleep(60)       
 
 def move_to_purchases(driver):
-    wait = WebDriverWait(driver, 10)
-    wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['leads']))).click()
+    try:
+        wait = WebDriverWait(driver, 10)
+        wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['leads']))).click()
 
-    action = webdriver.ActionChains(driver)
-    element = wait.until(EC.visibility_of_element_located((By.ID, xpath_dict['overlay'])))
-    action.move_to_element(element)
-    action.perform()
+        action = webdriver.ActionChains(driver)
+        element = wait.until(EC.visibility_of_element_located((By.ID, xpath_dict['overlay'])))
+        action.move_to_element(element)
+        action.perform()
 
-    search(driver,'partner')
-    search(driver,'main')
+        search(driver)
+        
+        driver.quit()
     
-    driver.quit()
+    except TimeoutException as ex:
+        print(ex.screen)
+        move_to_purchases(driver)
 
 if __name__ == '__main__':
     start()
+    
+        
