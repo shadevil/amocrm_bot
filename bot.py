@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.action_chains import ActionChains
 
 xpath_dict = {
     "leads":
@@ -90,16 +91,17 @@ def start():
         password_el.send_keys(password)
 
         submit_button.click()
-        move_to_purchases(driver)
+        overlay_exist = True
+        move_to_purchases(driver,overlay_exist)
     else: print('DATA WAS NOT FOUND')    
 
 def search(driver):  
     # FIXME: accept button
     while True:
-        for type in 'partner','main':
+        for type in 'main','partner':
             wait = WebDriverWait(driver, 10)
             print("====================================")
-            cards = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['purchases_'+type])))
+            cards = driver.find_elements(by=By.XPATH, value=xpath_dict['purchases_'+type])
             print('LEN CARDS ' + str(len(cards)))      
             print(type.upper())
             for card in cards:            
@@ -119,12 +121,11 @@ def search(driver):
                 else: result = datetime.strptime(dt, '%d.%m.%Y %H:%M').replace(second=0, microsecond=0)
                 diff = datetime.now() - result
                 print("DATETIME DIFF " + str(diff))
-                
+                back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
                 if(diff >= timedelta(minutes=15)):
                     time.sleep(3)
                     elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['content_'+type])))
-                    print("LEN ELEMENTS " + str(len(elements)))
-                    back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
+                    print("LEN ELEMENTS " + str(len(elements)))                    
                     for x in elements:
                         #Uncommit this for test
                         # print(str(x.get_attribute('innerHTML')))
@@ -138,27 +139,39 @@ def search(driver):
                     #     accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
                             print('MATCH')
                     #     accept.click()        
-                    back.click()
+                back.click()
         # FIXME: change to 600
-        time.sleep(60)       
+        time.sleep(60)      
 
-def move_to_purchases(driver):
-    try:
+def is_mouse_on_element(driver, xpath):
+    elements = driver.find_element(By.XPATH,xpath)
+    action = ActionChains(driver)
+    for element in elements:
+        action.move_to_element(element).perform()
+        is_mouse_on_element = driver.execute_script('return document.elementFromPoint(arguments[0], arguments[1]) === arguments[2];', 0, 0, element)
+        if is_mouse_on_element:
+            return True
+    return False
+
+def move_to_purchases(driver,overlay_exist):
+    print("OVERLAY_EXIST " + str(overlay_exist))    
+    # try:        
+    if(overlay_exist):
         wait = WebDriverWait(driver, 10)
         wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['leads']))).click()
-
-        action = webdriver.ActionChains(driver)
-        element = wait.until(EC.visibility_of_element_located((By.ID, xpath_dict['overlay'])))
+        element = wait.until(EC.visibility_of_element_located((By.ID, xpath_dict['overlay'])))                                           
+        action = webdriver.ActionChains(driver)           
         action.move_to_element(element)
         action.perform()
-
-        search(driver)
-        
-        driver.quit()
+        overlay_exist = True
+    search(driver)
     
-    except TimeoutException as ex:
-        print(ex.screen)
-        move_to_purchases(driver)
+    driver.quit()
+    
+    # except TimeoutException as ex:
+    #     print(ex.screen)
+    #     overlay_exist = False
+    #     move_to_purchases(driver,overlay_exist)
 
 if __name__ == '__main__':
     start()
