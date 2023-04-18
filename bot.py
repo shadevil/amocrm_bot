@@ -43,7 +43,7 @@ reg_dict = {
 def match_log(matches):
     if matches:
         for match in matches:
-            write_log("#LOG         Match found: " + match)
+            write_log("Match found: " + match)
 
 def auth_data():
     if not os.path.exists('auth'):
@@ -68,11 +68,11 @@ def set_auth_data(type,data):
     with open("auth", "a") as f:
         f.write(type + '\t' + data + "\n")
 
-def write_log(log,message):
-    date_time = datetime.now.strftime("%m/%d/%Y, %H:%M:%S")
+def write_log(message):
+    date_time = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     data = date_time + ' ' + message
     print(data)
-    with open("auth", "a") as f:
+    with open("log", "a") as f:
         f.write(data + "\n")
 
 def reg_search(reg,query): return re.findall(reg, query)
@@ -108,8 +108,6 @@ def datetime_result(driver):
     wait = WebDriverWait(driver, 10)
     dt = wait.until(EC.presence_of_element_located((By.XPATH, xpath_dict['datetime']))).get_attribute('innerHTML')
     write_log('RECEIVED DATETIME ' + dt)
-    
-    result = None
     if(len(dt) != 16):
         now = datetime.now()
         yesterday = datetime.now() - timedelta(days=1)
@@ -132,7 +130,7 @@ def search(driver,type):
         time.sleep(1)
         wait = WebDriverWait(driver, 10)
 
-        diff = datetime.now() - datetime_result()
+        diff = datetime.now() - datetime_result(driver)
         write_log("DATETIME DIFF " + str(diff))
         back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
         if(diff >= timedelta(minutes=15) and diff < timedelta(days=3)):
@@ -149,9 +147,9 @@ def search(driver,type):
                 match_log(city)
                 
                 if(not reg and city):
-                    # accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
+                    accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
                     write_log('MATCH')
-                    # accept.click()
+                    accept.click()
         write_log('COUNT' + str(count))        
         back.click()
         count = count + 1
