@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.action_chains import ActionChains
 
 # already_read = []
@@ -78,36 +79,39 @@ def write_log(message):
 def reg_search(reg,query): return re.findall(reg, query)
 
 def start():
-    auth_data()
-    site = get_auth_data('site')
-    login = get_auth_data('login')
-    password = get_auth_data('password')
+    try:
+        auth_data()
+        site = get_auth_data('site')
+        login = get_auth_data('login')
+        password = get_auth_data('password')
 
-    if(site != '' and login != '' and password != ''):
-        chrome_options = webdriver.ChromeOptions()
-        prefs = {"profile.default_content_setting_values.notifications" : 2}
-        chrome_options.add_experimental_option("prefs",prefs)
-        # изменить, если запуск не на windows
-        driver = webdriver.Chrome(executable_path=r'chromedriver.exe',options=chrome_options)
+        if(site != '' and login != '' and password != ''):
+            chrome_options = webdriver.ChromeOptions()
+            prefs = {"profile.default_content_setting_values.notifications" : 2}
+            chrome_options.add_experimental_option("prefs",prefs)
+            # изменить, если запуск не на windows
+            driver = webdriver.Chrome(executable_path=r'chromedriver',options=chrome_options)
 
-        driver.get(site)
-        driver.implicitly_wait(0.5)
+            driver.get(site)
+            driver.implicitly_wait(0.5)
 
-        login_el = driver.find_element(by=By.ID, value="session_end_login")
-        password_el = driver.find_element(by=By.ID, value="password")
-        submit_button = driver.find_element(by=By.CLASS_NAME, value="auth_form__submit")
+            login_el = driver.find_element(by=By.ID, value="session_end_login")
+            password_el = driver.find_element(by=By.ID, value="password")
+            submit_button = driver.find_element(by=By.CLASS_NAME, value="auth_form__submit")
 
-        login_el.send_keys(login)
-        password_el.send_keys(password)
+            login_el.send_keys(login)
+            password_el.send_keys(password)
 
-        submit_button.click()
-        overlay_exist = True
-        move_to_purchases(driver,overlay_exist)
-    else: write_log('DATA WAS NOT FOUND')    
+            submit_button.click()
+            overlay_exist = True
+            move_to_purchases(driver,overlay_exist)
+        else: write_log('DATA WAS NOT FOUND')
+    except WebDriverException as ex:
+        write_log(ex.msg)
+        start()
 
 def datetime_result(driver):
-    wait = WebDriverWait(driver, 10)
-    dt = wait.until(EC.presence_of_element_located((By.XPATH, xpath_dict['datetime']))).get_attribute('innerHTML')
+    dt = driver.find_element(By.XPATH, xpath_dict['datetime']).get_attribute('innerHTML')
     write_log('RECEIVED DATETIME ' + dt)
     if(len(dt) != 16):
         now = datetime.now()
@@ -116,11 +120,11 @@ def datetime_result(driver):
         time_str = dt.split(" ")[1]
         time_dt = datetime.strptime(time_str, "%H:%M")
         return datetime(now.year, now.month, now.day, time_dt.hour, time_dt.minute) if today else datetime(yesterday.year, yesterday.month, yesterday.day, time_dt.hour, time_dt.minute)
+    if(dt is None): return None
     else: return datetime.strptime(dt, '%d.%m.%Y %H:%M').replace(second=0, microsecond=0)
 
 def search(driver,type):
     wait = WebDriverWait(driver, 10)
-    count = 1
     # FIXME: accept button
     write_log("====================================")
     cards = driver.find_elements(by=By.XPATH, value=xpath_dict['purchases_'+type])
@@ -130,11 +134,11 @@ def search(driver,type):
         wait.until(EC.element_to_be_clickable(card)).click()
         time.sleep(1)
         wait = WebDriverWait(driver, 10)
-
-        diff = datetime.now() - datetime_result(driver)
+        result = datetime_result(driver)
+        if(result is not None): diff = datetime.now() - result
         write_log("DATETIME DIFF " + str(diff))
         back = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_dict['back'])))
-        if(diff >= timedelta(minutes=15) and diff < timedelta(days=3)):
+        if(result is not None and diff >= timedelta(minutes=15) and diff < timedelta(days=3)):
             time.sleep(3)
             elements = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_dict['content_'+type])))
             write_log("LEN ELEMENTS " + str(len(elements)))                    
@@ -148,12 +152,10 @@ def search(driver,type):
                 match_log(city)
                 
                 if(not reg and city):
-                    accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
+                    # accept = driver.find_element(by=By.ID, value="card_unsorted_accept")
                     write_log('MATCH')
-                    accept.click()
-        write_log('COUNT' + str(count))        
+                    # accept.click()      
         back.click()
-        count = count + 1
 
 def is_mouse_on_element(driver, xpath):
     elements = driver.find_element(By.XPATH,xpath)
@@ -190,5 +192,3 @@ def move_to_purchases(driver,overlay_exist):
 
 if __name__ == '__main__':
     start()
-    
-        
